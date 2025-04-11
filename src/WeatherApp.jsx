@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container, Form, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 
 const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
 
 const WeatherApp = () => {
-  const [weatherCards, setWeatherCards] = useState([]);
-  const [error, setError] = useState(null);
-  const [bgClass, setBgClass] = useState("clear");
+  const [weatherCards, setWeatherCards] = useState([]); // stores weather info for each searched city
+  const [error, setError] = useState(null); // to show error for invalid city
+  const [bgClass, setBgClass] = useState("clear"); // sets background based on weather
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -15,9 +15,10 @@ const WeatherApp = () => {
     if (!city) return;
 
     await fetchWeatherByCity(city);
-    event.target.reset();
+    event.target.reset(); // clear input after search
   };
 
+  // fetch weather for a given city
   const fetchWeatherByCity = async (city) => {
     const API_URL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
 
@@ -27,13 +28,14 @@ const WeatherApp = () => {
       const data = await response.json();
 
       setWeatherCards(prev => [...prev, data]);
-      setBgClass(data.weather[0].main.toLowerCase()); // for background
+      setBgClass(data.weather[0].main.toLowerCase()); // change background based on weather
       setError(null);
     } catch (err) {
       setError(err.message);
     }
   };
 
+  // remove card when "Remove" button is clicked
   const handleRemove = (id) => {
     setWeatherCards(prev => prev.filter(card => card.id !== id));
   };
@@ -41,10 +43,9 @@ const WeatherApp = () => {
   return (
     <div className={`weather-app ${bgClass}`}>
       <Container className="my-5 text-center">
-        <h2 className="mb-4">
-          <span role="img" aria-label="cloud">⛅</span> React Weather App
-        </h2>
+        <h2 className="mb-4">⛅ React Weather App</h2>
 
+        {/* form for entering city */}
         <Form onSubmit={handleSubmit}>
           <Row className="justify-content-center align-items-center mb-3">
             <Col xs={12} md={6}>
@@ -58,6 +59,7 @@ const WeatherApp = () => {
 
         {error && <Alert variant="danger">{error}</Alert>}
 
+        {/* card layout for each city searched */}
         <div className="d-flex justify-content-center flex-wrap gap-4 mt-4">
           {weatherCards.map((data) => (
             <Card
@@ -69,6 +71,7 @@ const WeatherApp = () => {
                 <Card.Title className="weather-title">
                   {data.name}, {data.sys.country}
                 </Card.Title>
+
                 <Card.Text className="text-start">
                   <div className="text-center mb-2">
                     <img
@@ -82,6 +85,7 @@ const WeatherApp = () => {
                   <div><strong>Humidity:</strong> {data.main.humidity}%</div>
                   <div><strong>Updated:</strong> {new Date(data.dt * 1000).toLocaleString()}</div>
                 </Card.Text>
+
                 <Button variant="danger" onClick={() => handleRemove(data.id)}>Remove</Button>
               </Card.Body>
             </Card>
